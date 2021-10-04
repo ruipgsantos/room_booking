@@ -1,0 +1,31 @@
+version: '3.1'
+services:
+  booking_db:
+    container_name: bookingdb
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: api
+      MYSQL_PASSWORD: api
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database:/docker-entrypoint-initdb.d
+  booking_be:
+    build: room_booking/
+    command: npm run start
+    volumes:
+      - ./room_booking:/usr/app
+      - /usr/app/node_modules
+    ports:
+      - 5000:5000
+    depends_on:
+      - booking_db
+    environment:
+      DB_HOST: booking_db
+      DB_USER: api
+      DB_PASSWORD: api
+      DB_PORT: 3306
+      PORT: 5000
+
