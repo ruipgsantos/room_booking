@@ -1,5 +1,7 @@
 # room_booking
 
+build with "docker-compose up"
+
 Accounts:
 
 email: user1@coca.com
