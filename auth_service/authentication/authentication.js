@@ -1,14 +1,11 @@
+require('dotenv').config()
 const mysql = require('mysql2');
 const bcrypt = require('bcrypt')
 const saltRounds = 2
-const expiration = 5 * 60 * 1000
-require('dotenv').config()
+const secretKey = process.env.JWT_SECRET_KEY || 'e5c8a121-0aea-44c8-9e58-f8bec601a0d1'
+var jwt = require('jsonwebtoken');
 
 class Authentication {
-
-    constructor() {
-        this.sessions = []
-    }
 
     authenticate(email, password) {
         let con = this._getConnection()
@@ -20,7 +17,7 @@ class Authentication {
                 if (err) { console.log(err); reject(err); return }
 
                 var values = [email]
-                var sql = "select id, password, company from booking.user where email = ?"
+                var sql = "select id, password, company from auth.user where email = ?"
 
                 con.query(sql, values, (err, rows) => {
 
@@ -37,10 +34,18 @@ class Authentication {
                     const hash = Buffer.from(rows[0].password).toString()
 
                     this._compareBcrypt(password, hash)
-                        .then(() => this._generateSessionToken())
-                        .then(hash => {
-                            this._addSession(hash, rows[0].id, email, rows[0].company)
-                            resolve(hash)
+                        .then(() => this._signJwt({
+                            userId: rows[0].id,
+                            userEmail: email,
+                            userCompany: rows[0].company
+                        }))
+                        .then(token => {
+                            resolve({
+                                userToken: token,
+                                userId: rows[0].id,
+                                userEmail: email,
+                                userCompany: rows[0].company
+                            })
                         })
                         .catch(err => reject(err))
                 })
@@ -48,6 +53,16 @@ class Authentication {
 
         })
 
+    }
+
+    _signJwt(userInfo) {
+        return jwt.sign({
+            data: userInfo
+        }, secretKey, { expiresIn: '1h' });
+    }
+
+    verifyJwt(token) {
+        return jwt.verify(token, secretKey)
     }
 
     _genBCrypt(input) {
@@ -71,34 +86,6 @@ class Authentication {
             });
         })
 
-    }
-
-    _generateSessionToken() {
-        return this._genBCrypt(Date.now().toString())
-    }
-
-    _addSession(sessionToken, id, email, company) {
-        const session = { sessionToken, id, email, company, time: Date.now() }
-        console.log("pushing new session for user " + email)
-        console.log(session)
-        this.sessions.push(session)
-    }
-
-    sessionIsValid(sessionToken) {
-
-        let sessionObj = this.sessions.find((sObj) => {
-            return sessionToken === sObj.sessionToken
-        })
-
-        const valid = sessionObj && (sessionObj.time + expiration > Date.now())
-
-        if (!valid) {
-            this.sessions = this.sessions.filter((token) => {
-                return sessionToken !== token
-            })
-            return
-        }
-        return sessionObj
     }
 
     _getConnection() {

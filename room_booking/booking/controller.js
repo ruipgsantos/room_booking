@@ -6,20 +6,22 @@ const bookRepo = new BookingRepository()
 
 router.get('/bookings', (req, res) => {
 
-    bookRepo.rooms().then((result) => {
+    bookRepo.bookings().then((result) => {
         res.status(200).json(result)
     })
         .catch(error => {
             console.log(error)
-            res.status(500).send()
+            reres.status(500).send()
         })
 })
 
 router.put('/book/:timeslot/:id', (req, res) => {
 
-    const userSession = res.locals.userSession
+    const userSession = res.locals.userSession.data;
 
-    bookRepo.bookRoom(req.params.timeslot, req.params.id, userSession.id, userSession.company)
+    console.log(userSession)
+
+    bookRepo.bookRoom(req.params.timeslot, req.params.id, userSession.userId, userSession.userCompany)
         .then((result) => {
             res.status(200).json({ msg: "Room has been booked", booking: result })
         })
@@ -31,9 +33,10 @@ router.put('/book/:timeslot/:id', (req, res) => {
 
 router.delete('/book/:timeslot/:id', (req, res) => {
 
-    const userSession = res.locals.userSession
+    const userSession = res.locals.userSession.data;
+    console.log(userSession)
 
-    bookRepo.cancelBooking(req.params.timeslot, req.params.id, userSession.id, userSession.company)
+    bookRepo.cancelBooking(req.params.timeslot, req.params.id, userSession.userId, userSession.userCompany)
         .then((result) => {
             res.status(200).json({ msg: "Booking has been cancelled", booking: result })
         })

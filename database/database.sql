@@ -12,7 +12,7 @@ Create Table user (
 	email varchar(50) unique not null,
 	name varchar(255) not null,
 	company varchar(1) not null,
-	password binary(60) not null,
+	password binary(60) not null,	
 	primary key (id)
 );
 

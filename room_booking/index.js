@@ -1,14 +1,22 @@
 const express = require('express')
 const app = express()
-const path = require('path')
+const cors = require('cors')
+const morgan = require('morgan')
+const PORT = process.env.PORT || 5001
+require('dotenv').config()
+
 const mwAuth = require('./middleware/auth')
-const PORT = process.env.PORT || 5000
+
+const AUTH_ORIGIN = process.env.AUTH_ORIGIN || 'http://localhost:6000'
+
+app.use(morgan())
+app.use(cors({
+    origin: AUTH_ORIGIN
+}))
+
+app.use('/api', mwAuth, require('./booking/controller'))
+
+app.use(express.json())
 
 app.listen(PORT,
     () => console.log(`Server running on http://localhost:${PORT}`))
-
-app.use(express.json())
-app.use(express.urlencoded({ extender: false }))
-
-app.use('/api', mwAuth, require('./booking/controller'))
-app.use('/auth', require('./auth/controller'))

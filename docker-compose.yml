@@ -12,14 +12,24 @@ services:
       - "3306:3306"
     volumes:
       - ./database:/docker-entrypoint-initdb.d
+  auth_db:
+    container_name: auth_db
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: api
+      MYSQL_PASSWORD: api
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./authdb:/docker-entrypoint-initdb.d
   booking_be:
     build: room_booking/
     command: npm run start
     volumes:
       - ./room_booking:/usr/app
       - /usr/app/node_modules
-    ports:
-      - 5000:5000
     depends_on:
       - booking_db
     environment:
@@ -27,5 +37,28 @@ services:
       DB_USER: api
       DB_PASSWORD: api
       DB_PORT: 3306
-      PORT: 5000
-
+      PORT: 5001
+      AUTH_ORIGIN: http://auth_be:6000
+      JWT_SECRET_KEY: e7a11282-1394-4e31-bee0-26b7b8c7b344
+  auth_be:
+    build: auth_service/
+    command: npm run start
+    container_name: auth_be
+    volumes:
+      - ./auth_service:/usr/app
+      - /usr/app/node_modules
+    #ports:
+     # - 5001:5000
+    ports:
+      - 6000:6000
+    depends_on:
+      - auth_db
+    environment:
+      DB_HOST: auth_db
+      DB_USER: api
+      DB_PASSWORD: api
+      DB_PORT: 3306
+      PORT: 6000
+      API_HOST: booking_be
+      API_PORT: 5001
+      JWT_SECRET_KEY: e7a11282-1394-4e31-bee0-26b7b8c7b344
