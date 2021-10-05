@@ -11,7 +11,7 @@ email: user2@pepsi.com
 password: password2
 
 
-Endpoints:
+Endpoints for localhost:6000
 
 POST - /auth/login
 {
