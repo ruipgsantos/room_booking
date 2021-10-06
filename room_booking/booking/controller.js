@@ -11,7 +11,7 @@ router.get('/bookings', (req, res) => {
     })
         .catch(error => {
             console.log(error)
-            reres.status(500).send()
+            res.status(500).send()
         })
 })
 
