@@ -23,9 +23,9 @@ Get all bookings
 GET - /api/bookings
 
 Book a room
-PUT - /book/:timeslot/:roomid
+PUT - api/book/:timeslot/:roomid
 
 Cancel a booking
-DELETE - /book/:timeslot/:roomid
+DELETE - api/book/:timeslot/:roomid
 
 
